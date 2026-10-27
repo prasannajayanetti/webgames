@@ -10,14 +10,20 @@
   <div class="game">
     <div class="hud">
       <h1>Brick</h1>
-      <div class="score-box">
-        <div class="score-label">Score</div>
-        <div id="score" class="score-value">0</div>
+      <div class="brick-hud-side">
+        <div class="score-box">
+          <div class="score-label">Score</div>
+          <div id="score" class="score-value">0</div>
+        </div>
+        <div class="next-box">
+          <div class="score-label">Next</div>
+          <div id="next-piece" class="next-piece" aria-label="Next piece"></div>
+        </div>
       </div>
     </div>
 
     <div class="board-wrap">
-      <div id="board" class="board" aria-label="10 by 10 brick board"></div>
+      <div id="board" class="board" aria-label="10 by 15 brick board"></div>
       <div id="overlay" class="overlay" aria-live="assertive">
         <h2 id="overlay-title">Game Over</h2>
         <p id="overlay-text">Press restart to try again.</p>
@@ -25,13 +31,21 @@
     </div>
 
     <div class="controls">
-      <div class="instructions">← → move • ↑ rotate • ↓ drop</div>
-      <button id="restart" type="button">Restart</button>
+      <div class="move-controls" aria-label="Brick controls">
+        <button id="move-left" class="control-button" type="button" aria-label="Move left">←</button>
+        <button id="rotate" class="control-button rotate-button" type="button" aria-label="Rotate piece">↻</button>
+        <button id="move-right" class="control-button" type="button" aria-label="Move right">→</button>
+      </div>
+      <div class="game-actions">
+        <div class="instructions">← → move • ↑ rotate • ↓ drop</div>
+        <button id="restart" type="button">Restart</button>
+      </div>
     </div>
   </div>
 
   <script>
-    const GRID_SIZE = 10;
+    const GRID_COLUMNS = 10;
+    const GRID_ROWS = 15;
     const DROP_INTERVAL = 550;
     const SHAPES = [
       { cells: [[1, 1, 1]], color: 'A' },
@@ -42,31 +56,60 @@
     ];
 
     const boardEl = document.getElementById('board');
+    const nextPieceEl = document.getElementById('next-piece');
     const scoreEl = document.getElementById('score');
     const overlayEl = document.getElementById('overlay');
     const overlayTitleEl = document.getElementById('overlay-title');
     const overlayTextEl = document.getElementById('overlay-text');
     const restartBtn = document.getElementById('restart');
+    const moveLeftBtn = document.getElementById('move-left');
+    const moveRightBtn = document.getElementById('move-right');
+    const rotateBtn = document.getElementById('rotate');
 
     let board = [];
     let currentPiece = null;
+    let nextPieceTemplate = null;
     let score = 0;
     let lastDrop = 0;
     let gameOver = false;
 
     function createBoard() {
-      return Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
+      return Array.from({ length: GRID_ROWS }, () => Array(GRID_COLUMNS).fill(0));
     }
 
-    function randomPiece() {
-      const template = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+    function randomTemplate() {
+      return SHAPES[Math.floor(Math.random() * SHAPES.length)];
+    }
+
+    function createPiece(template) {
       const shape = template.cells.map((row) => [...row]);
       return {
         shape,
         row: 0,
-        col: Math.floor((GRID_SIZE - shape[0].length) / 2),
+        col: Math.floor((GRID_COLUMNS - shape[0].length) / 2),
         color: template.color
       };
+    }
+
+    function renderNextPiece() {
+      nextPieceEl.replaceChildren();
+      nextPieceEl.style.setProperty('--preview-columns', String(nextPieceTemplate.cells[0].length));
+      nextPieceTemplate.cells.forEach((row) => {
+        row.forEach((filled) => {
+          const cell = document.createElement('span');
+          cell.className = filled ? 'next-cell next-cell-filled' : 'next-cell';
+          nextPieceEl.appendChild(cell);
+        });
+      });
+    }
+
+    function spawnNextPiece() {
+      currentPiece = createPiece(nextPieceTemplate);
+      nextPieceTemplate = randomTemplate();
+      renderNextPiece();
+      if (!canPlace(currentPiece, currentPiece.row, currentPiece.col)) {
+        endGame();
+      }
     }
 
     function updateScore() {
@@ -81,7 +124,7 @@
           const cellRow = nextRow + r;
           const cellCol = nextCol + c;
 
-          if (cellCol < 0 || cellCol >= GRID_SIZE || cellRow >= GRID_SIZE) {
+          if (cellCol < 0 || cellCol >= GRID_COLUMNS || cellRow >= GRID_ROWS) {
             return false;
           }
 
@@ -118,20 +161,16 @@
       }
 
       clearLines();
-      currentPiece = randomPiece();
-
-      if (!canPlace(currentPiece, currentPiece.row, currentPiece.col)) {
-        endGame();
-      }
+      spawnNextPiece();
     }
 
     function clearLines() {
       let cleared = 0;
 
-      for (let r = GRID_SIZE - 1; r >= 0; r -= 1) {
+      for (let r = GRID_ROWS - 1; r >= 0; r -= 1) {
         if (board[r].every((cell) => cell === 1)) {
           board.splice(r, 1);
-          board.unshift(Array(GRID_SIZE).fill(0));
+          board.unshift(Array(GRID_COLUMNS).fill(0));
           cleared += 1;
           r += 1;
         }
@@ -153,8 +192,8 @@
     function render() {
       const cells = [];
 
-      for (let r = 0; r < GRID_SIZE; r += 1) {
-        for (let c = 0; c < GRID_SIZE; c += 1) {
+      for (let r = 0; r < GRID_ROWS; r += 1) {
+        for (let c = 0; c < GRID_COLUMNS; c += 1) {
           const cell = document.createElement('div');
           cell.className = 'cell';
 
@@ -235,9 +274,11 @@
       board = createBoard();
       score = 0;
       updateScore();
-      currentPiece = randomPiece();
       gameOver = false;
       overlayEl.classList.remove('visible');
+      nextPieceTemplate = randomTemplate();
+      spawnNextPiece();
+      lastDrop = 0;
       render();
     }
 
@@ -262,6 +303,9 @@
     });
 
     restartBtn.addEventListener('click', resetGame);
+    moveLeftBtn.addEventListener('click', () => movePiece(-1));
+    moveRightBtn.addEventListener('click', () => movePiece(1));
+    rotateBtn.addEventListener('click', rotatePiece);
 
     resetGame();
     requestAnimationFrame(gameLoop);

@@ -97,13 +97,14 @@
 }
 
 .page-brick .game {
-  width: min(92vw, 420px);
+  width: min(94vw, 440px);
 }
 
 .page-brick .hud {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
@@ -131,6 +132,41 @@
 .page-brick .score-value {
   font-size: 1.5rem;
   font-weight: 700;
+}
+
+.page-brick .brick-hud-side {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.page-brick .next-box {
+  min-width: 76px;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.page-brick .next-piece {
+  display: grid;
+  grid-template-columns: repeat(var(--preview-columns), 10px);
+  grid-auto-rows: 10px;
+  gap: 2px;
+  align-content: center;
+  min-height: 28px;
+}
+
+.page-brick .next-cell {
+  width: 10px;
+  height: 10px;
+}
+
+.page-brick .next-cell-filled {
+  border-radius: 2px;
+  background: var(--filled-2);
 }
 
 .page-brick .board-wrap {
@@ -167,19 +203,52 @@
 }
 
 .page-brick .controls {
+  display: grid;
+  gap: 10px;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.page-brick .move-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.page-brick .control-button {
+  min-height: 44px;
+  border: 1px solid #475569;
+  border-radius: 10px;
+  background: #273449;
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 700;
+  touch-action: manipulation;
+}
+
+.page-brick .control-button:active {
+  background: #3b4e68;
+  transform: translateY(1px);
+}
+
+.page-brick .rotate-button {
+  color: #fbbf24;
+}
+
+.page-brick .game-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 12px;
-  gap: 12px;
+  gap: 10px;
 }
 
 .page-brick .instructions {
   color: var(--muted);
   font-size: 0.9rem;
+  line-height: 1.4;
 }
 
-.page-brick button {
+.page-brick .game-actions button {
   cursor: pointer;
   border: 0;
   border-radius: 10px;
