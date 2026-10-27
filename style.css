@@ -443,3 +443,217 @@
     font-size: 0.8rem;
   }
 }
+
+.page-cardflip {
+  --memory-bg: #0f172a;
+  --memory-panel: #1e293b;
+  --memory-card: #334155;
+  --memory-accent: #38bdf8;
+  --memory-text: #e5e7eb;
+  --memory-muted: #94a3b8;
+
+  min-height: 100vh;
+  margin: 0;
+  padding: 28px 16px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(ellipse at top, rgba(56, 189, 248, 0.14), transparent 55%),
+    var(--memory-bg);
+  color: var(--memory-text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.page-cardflip .memory-game {
+  width: min(100%, 680px);
+}
+
+.page-cardflip .memory-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.page-cardflip .back-link {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: var(--memory-accent);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.page-cardflip .back-link:hover {
+  text-decoration: underline;
+}
+
+.page-cardflip h1 {
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 3rem);
+}
+
+.page-cardflip .memory-header p {
+  margin: 8px 0 0;
+  color: var(--memory-muted);
+  line-height: 1.5;
+}
+
+.page-cardflip .restart-button {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 16px;
+  background: #0284c7;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 140ms ease, transform 140ms ease;
+}
+
+.page-cardflip .restart-button:hover {
+  transform: translateY(-1px);
+  background: #0369a1;
+}
+
+.page-cardflip .memory-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.page-cardflip .memory-stat {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.86);
+  text-align: center;
+}
+
+.page-cardflip .stat-label {
+  color: var(--memory-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-cardflip .memory-stat strong {
+  font-size: 1.35rem;
+}
+
+.page-cardflip .memory-status {
+  min-height: 24px;
+  margin: 0 0 12px;
+  color: var(--memory-muted);
+  text-align: center;
+}
+
+.page-cardflip .card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(8px, 2vw, 14px);
+}
+
+.page-cardflip .animal-card {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  cursor: pointer;
+  perspective: 700px;
+}
+
+.page-cardflip .animal-card:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 3px;
+}
+
+.page-cardflip .card-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: inherit;
+  backface-visibility: hidden;
+  transition: transform 280ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.page-cardflip .card-back {
+  background:
+    linear-gradient(135deg, rgba(56, 189, 248, 0.2), transparent 55%),
+    var(--memory-card);
+  color: #bae6fd;
+  font-size: clamp(2rem, 8vw, 3.5rem);
+  font-weight: 700;
+}
+
+.page-cardflip .card-front {
+  flex-direction: column;
+  gap: 4px;
+  transform: rotateY(180deg);
+  background: var(--memory-panel);
+}
+
+.page-cardflip .animal-card.is-open .card-back,
+.page-cardflip .animal-card.is-matched .card-back {
+  transform: rotateY(180deg);
+}
+
+.page-cardflip .animal-card.is-open .card-front,
+.page-cardflip .animal-card.is-matched .card-front {
+  transform: rotateY(0);
+}
+
+.page-cardflip .animal-card.is-matched .card-front {
+  border-color: #34d399;
+  background: #14532d;
+}
+
+.page-cardflip .animal-emoji {
+  font-size: clamp(1.8rem, 7vw, 3rem);
+  line-height: 1;
+}
+
+.page-cardflip .animal-name {
+  color: var(--memory-muted);
+  font-size: clamp(0.65rem, 2vw, 0.85rem);
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .page-cardflip {
+    padding: 20px 12px;
+  }
+
+  .page-cardflip .memory-header {
+    align-items: flex-start;
+  }
+
+  .page-cardflip .memory-header p {
+    max-width: 25ch;
+    font-size: 0.9rem;
+  }
+
+  .page-cardflip .restart-button {
+    margin-top: 30px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .page-cardflip .card-grid {
+    gap: 8px;
+  }
+
+  .page-cardflip .card-face {
+    border-radius: 10px;
+  }
+}

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Animal Pairs</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="page-cardflip">
+    <main class="memory-game">
+      <header class="memory-header">
+        <div>
+          <a class="back-link" href="index.htm">← All games</a>
+          <h1>Animal Pairs</h1>
+          <p>Find all 8 matching animal pairs in as few moves as you can.</p>
+        </div>
+        <button id="restart" class="restart-button" type="button">New Game</button>
+      </header>
+
+      <section class="memory-stats" aria-label="Game stats">
+        <div class="memory-stat">
+          <span class="stat-label">Moves</span>
+          <strong id="moves">0</strong>
+        </div>
+        <div class="memory-stat">
+          <span class="stat-label">Pairs</span>
+          <strong id="pairs">0 / 8</strong>
+        </div>
+        <div class="memory-stat">
+          <span class="stat-label">Best</span>
+          <strong id="best">—</strong>
+        </div>
+      </section>
+
+      <div id="status" class="memory-status" role="status" aria-live="polite">
+        Choose two cards to find a matching pair.
+      </div>
+
+      <section id="card-grid" class="card-grid" aria-label="Animal cards"></section>
+    </main>
+
+    <script>
+      const ANIMALS = [
+        { name: 'Fox', emoji: '🦊' },
+        { name: 'Panda', emoji: '🐼' },
+        { name: 'Lion', emoji: '🦁' },
+        { name: 'Frog', emoji: '🐸' },
+        { name: 'Penguin', emoji: '🐧' },
+        { name: 'Koala', emoji: '🐨' },
+        { name: 'Tiger', emoji: '🐯' },
+        { name: 'Monkey', emoji: '🐵' }
+      ];
+      const BEST_KEY = 'animal-pairs-best';
+      const FLIP_BACK_DELAY = 900;
+
+      const gridEl = document.getElementById('card-grid');
+      const movesEl = document.getElementById('moves');
+      const pairsEl = document.getElementById('pairs');
+      const bestEl = document.getElementById('best');
+      const statusEl = document.getElementById('status');
+      const restartBtn = document.getElementById('restart');
+
+      let cards = [];
+      let firstCard = null;
+      let locked = false;
+      let moves = 0;
+      let matchedPairs = 0;
+      let mismatchTimer = null;
+
+      function shuffle(items) {
+        const shuffled = [...items];
+        for (let index = shuffled.length - 1; index > 0; index -= 1) {
+          const randomIndex = Math.floor(Math.random() * (index + 1));
+          [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+        }
+        return shuffled;
+      }
+
+      function updateStats() {
+        movesEl.textContent = String(moves);
+        pairsEl.textContent = `${matchedPairs} / ${ANIMALS.length}`;
+        const best = Number(localStorage.getItem(BEST_KEY));
+        bestEl.textContent = best > 0 ? String(best) : '—';
+      }
+
+      function setCardState(card, state) {
+        card.state = state;
+        card.button.classList.toggle('is-open', state === 'open');
+        card.button.classList.toggle('is-matched', state === 'matched');
+        card.button.setAttribute(
+          'aria-label',
+          state === 'matched' ? `Matched ${card.animal.name}` :
+            state === 'open' ? `${card.animal.name}, face up` : 'Hidden animal card'
+        );
+      }
+
+      function renderCards() {
+        gridEl.replaceChildren();
+
+        cards.forEach((card, index) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'animal-card';
+          button.setAttribute('aria-label', 'Hidden animal card');
+          button.innerHTML = `
+            <span class="card-face card-back" aria-hidden="true">?</span>
+            <span class="card-face card-front" aria-hidden="true">
+              <span class="animal-emoji">${card.animal.emoji}</span>
+              <span class="animal-name">${card.animal.name}</span>
+            </span>
+          `;
+          button.addEventListener('click', () => flipCard(index));
+          card.button = button;
+          gridEl.appendChild(button);
+        });
+      }
+
+      function flipCard(index) {
+        const card = cards[index];
+        if (locked || card.state !== 'hidden') return;
+
+        setCardState(card, 'open');
+
+        if (!firstCard) {
+          firstCard = card;
+          statusEl.textContent = 'Pick one more card.';
+          return;
+        }
+
+        moves += 1;
+        const secondCard = card;
+        const firstOpenCard = firstCard;
+        firstCard = null;
+
+        if (secondCard.animal.name === firstOpenCard.animal.name) {
+          setCardState(secondCard, 'matched');
+          setCardState(firstOpenCard, 'matched');
+          matchedPairs += 1;
+          statusEl.textContent = `Match found! ${ANIMALS.length - matchedPairs} pairs left.`;
+          updateStats();
+          if (matchedPairs === ANIMALS.length) finishGame();
+          return;
+        }
+
+        locked = true;
+        statusEl.textContent = 'Not a match — try to remember them.';
+        updateStats();
+        mismatchTimer = window.setTimeout(() => {
+          const openCards = cards.filter((item) => item.state === 'open');
+          openCards.forEach((item) => setCardState(item, 'hidden'));
+          locked = false;
+          mismatchTimer = null;
+          statusEl.textContent = 'Choose two cards to find a matching pair.';
+        }, FLIP_BACK_DELAY);
+      }
+
+      function finishGame() {
+        const previousBest = Number(localStorage.getItem(BEST_KEY));
+        if (!previousBest || moves < previousBest) {
+          localStorage.setItem(BEST_KEY, String(moves));
+          statusEl.textContent = `All pairs found in ${moves} moves — new best!`;
+        } else {
+          statusEl.textContent = `All pairs found in ${moves} moves! Best: ${previousBest}.`;
+        }
+        updateStats();
+      }
+
+      function startGame() {
+        if (mismatchTimer !== null) {
+          window.clearTimeout(mismatchTimer);
+          mismatchTimer = null;
+        }
+        const deck = shuffle([...ANIMALS, ...ANIMALS].map((animal, id) => ({ animal, id })));
+        cards = deck.map((item) => ({ ...item, state: 'hidden', button: null }));
+        firstCard = null;
+        locked = false;
+        moves = 0;
+        matchedPairs = 0;
+        statusEl.textContent = 'Choose two cards to find a matching pair.';
+        renderCards();
+        updateStats();
+      }
+
+      restartBtn.addEventListener('click', startGame);
+      startGame();
+    </script>
+  </body>
+</html>
